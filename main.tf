@@ -2,22 +2,73 @@ provider "aws" {
   region = "us-east-1"
 }
 
-module "lambda_function" {
-  source = "terraform-aws-modules/lambda/aws"
-
-  function_name  = "get-baby-name"
-  description   = "Lambda function that suggests a baby girl name"
-  create_package = false
-
-  image_uri    = module.docker_image.image_uri
-  package_type = "Image"
+resource "random_pet" "go_func_bucket_name" {
+  prefix = "go-lambda"
+  length = 2
 }
 
-module "docker_image" {
-  source = "terraform-aws-modules/lambda/aws//modules/docker-build"
+resource "aws_s3_bucket" "go_func_bucket" {
+  bucket = random_pet.go_func_bucket_name.id
 
-  create_ecr_repo = true
-  ecr_repo        = "my-ecr-repo"
-  image_tag       = "1.0"
-  source_path     = "go-func"
+  acl           = "private"
+  force_destroy = true
+}
+
+data "archive_file" "go_func_archive" {
+  type = "zip"
+
+  source_dir  = "./bin"
+  output_path = "./bin/get-name.zip"
+}
+
+resource "aws_s3_bucket_object" "go_func_bucket_item" {
+  bucket = aws_s3_bucket.go_func_bucket.id
+
+  key    = "get-name.zip"
+  source = data.archive_file.go_func_archive.output_path
+
+  etag = filemd5(data.archive_file.go_func_archive.output_path)
+}
+
+resource "aws_lambda_function" "get_name" {
+  function_name = "GetName"
+
+  s3_bucket = aws_s3_bucket.go_func_bucket.id
+  s3_key    = aws_s3_bucket_object.go_func_bucket_item.key
+
+  runtime = "go1.x"
+  handler = "get-name"
+
+  source_code_hash = filebase64sha256(data.archive_file.go_func_archive.output_path)
+
+  role = aws_iam_role.go_lambda_role.arn
+}
+
+resource "aws_iam_role" "go_lambda_role" {
+  name = "go_lambda_role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Sid    = ""
+      Principal = {
+        Service = "lambda.amazonaws.com"
+      }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_policy" {
+  role       = aws_iam_role.go_lambda_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+
+output "lambda_bucket_name" {
+  description = "S3 bucket name for Go lambda function"
+
+  value = aws_s3_bucket.go_func_bucket.id
 }
