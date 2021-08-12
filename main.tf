@@ -17,9 +17,11 @@ resource "aws_s3_bucket" "go_func_bucket" {
 data "archive_file" "go_func_archive" {
   type = "zip"
 
-  source_dir  = "./bin"
-  output_path = "./bin/get-name.zip"
+  source_file      = "${path.module}/bin/get-name" 
+  output_file_mode = "0666"
+  output_path = "${path.module}/bin/get-name.zip"
 }
+
 
 resource "aws_s3_bucket_object" "go_func_bucket_item" {
   bucket = aws_s3_bucket.go_func_bucket.id
