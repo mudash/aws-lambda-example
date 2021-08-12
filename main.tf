@@ -17,8 +17,7 @@ resource "aws_s3_bucket" "go_func_bucket" {
 data "archive_file" "go_func_archive" {
   type = "zip"
 
-  source_file      = "${path.module}/bin/get-name" 
-  output_file_mode = "0666"
+  source_dir      = "${path.module}/bin" 
   output_path = "${path.module}/bin/get-name.zip"
 }
 
