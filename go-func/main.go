@@ -2,30 +2,59 @@ package main
 
 import (
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-type Request struct{}
+type Request struct {
+	Gender string `json:"Gender"`
+}
 
 type Response struct {
 	Name string `json:"Name",required`
 }
 
+// Lambda Event Handler
 func EventHandler(r Request) (Response, error) {
 
-	return Response{Name: GetName()}, nil
+	g := strings.ToLower(r.Gender)
+	any := rand.Int()
+	if g == "m" {
+		return Response{Name: GetBabyBoyName()}, nil
+	} else if g == "f" {
+		return Response{Name: GetBabyGirlName()}, nil
+	} else if any%2 == 0 {
+		return Response{Name: GetBabyBoyName()}, nil
+	}
 
+	return Response{Name: GetBabyGirlName()}, nil
 }
-func GetName() string {
+
+// Randomly suggest baby girl names
+func GetBabyBoyName() string {
 	rand.Seed(time.Now().Unix())
 	names := []string{
-		"Liza",
+		"Ali",
+		"Alvin",
+		"Casey",
+		"Dylan",
+		"John",
+	}
+	n := rand.Int() % len(names)
+	return names[n]
+}
+
+// Randomly suggest baby girl names
+func GetBabyGirlName() string {
+	rand.Seed(time.Now().Unix())
+	names := []string{
+		"Aisha",
 		"Alisha",
-		"Susan",
-		"Shamsia",
+		"Faria",
 		"Patricia",
+		"Shamsia",
 	}
 	n := rand.Int() % len(names)
 	return names[n]
