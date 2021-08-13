@@ -32,7 +32,7 @@ func EventHandler(r Request) (Response, error) {
 	return Response{Name: GetBabyGirlName()}, nil
 }
 
-// Randomly suggest baby girl names
+// Randomly suggest baby boy names
 func GetBabyBoyName() string {
 	rand.Seed(time.Now().Unix())
 	names := []string{
