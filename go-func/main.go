@@ -25,6 +25,7 @@ func GetName() string {
 		"Alisha",
 		"Susan",
 		"Shamsia",
+		"Patricia",
 	}
 	n := rand.Int() % len(names)
 	return names[n]
