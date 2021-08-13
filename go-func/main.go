@@ -50,7 +50,7 @@ func GetBabyBoyName() string {
 func GetBabyGirlName() string {
 	rand.Seed(time.Now().Unix())
 	names := []string{
-		"Aisha",
+		"Aima",
 		"Alisha",
 		"Faria",
 		"Patricia",
